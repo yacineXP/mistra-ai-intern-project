@@ -1,0 +1,12 @@
+fastapi
+uvicorn[standard]
+pandas
+python-dotenv
+python-multipart
+mistralai==0.4.2
+pydantic-settings
+matplotlib
+pytest
+pytest-mock
+htmlmin
+gunicorn

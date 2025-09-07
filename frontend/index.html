@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Data Analyst</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #1f2937;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #4b5563;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #6b7280;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+    <link rel="preconnect" href="https://rsms.me/">
+    <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+</head>
+
+<body class="bg-gray-900 text-gray-200 flex items-center justify-center min-h-screen">
+
+    <div class="w-full max-w-4xl mx-auto p-4 md:p-8">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl md:text-5xl font-bold text-white">AI Data Analyst</h1>
+            <p class="text-lg text-gray-400 mt-2">Upload a CSV and ask questions in plain English.</p>
+        </header>
+
+        <main class="bg-gray-800 rounded-xl shadow-2xl p-6 md:p-8 space-y-8">
+
+            <!-- Upload Section -->
+            <section id="upload-section">
+                <h2 class="text-2xl font-semibold mb-4 text-white border-b-2 border-gray-700 pb-2">Step 1: Upload Your
+                    Data</h2>
+                <form id="upload-form" class="space-y-4">
+                    <div class="flex items-center justify-center w-full">
+                        <label for="file-upload"
+                            class="flex flex-col items-center justify-center w-full h-48 border-2 border-gray-600 border-dashed rounded-lg cursor-pointer bg-gray-700 hover:bg-gray-600 transition-colors">
+                            <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                                <svg class="w-10 h-10 mb-4 text-gray-400" aria-hidden="true"
+                                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
+                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2" />
+                                </svg>
+                                <p class="mb-2 text-sm text-gray-400"><span class="font-semibold">Click to upload</span>
+                                    or drag and drop</p>
+                                <p class="text-xs text-gray-500">CSV files only</p>
+                                <span id="file-name" class="mt-2 text-sm text-indigo-400 font-medium"></span>
+                            </div>
+                            <input id="file-upload" type="file" class="hidden" accept=".csv" />
+                        </label>
+                    </div>
+                    <button type="submit"
+                        class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:bg-gray-500"
+                        disabled>
+                        <span id="upload-button-text">Upload and Analyze</span>
+                        <div id="upload-spinner"
+                            class="hidden animate-spin rounded-full h-5 w-5 border-b-2 border-white mx-auto"></div>
+                    </button>
+                </form>
+            </section>
+
+            <!-- Query Section (Initially hidden) -->
+            <section id="query-section" class="hidden space-y-4">
+                <div id="session-info" class="bg-gray-700 p-4 rounded-lg">
+                    <h3 class="font-semibold text-lg text-white">Analysis Session Started</h3>
+                    <p class="text-sm text-gray-300">File: <span id="uploaded-filename"
+                            class="font-mono text-indigo-400"></span></p>
+                    <details class="mt-2 text-sm">
+                        <summary class="cursor-pointer text-gray-400 hover:text-white">View Schema</summary>
+                        <pre id="schema-details" class="bg-gray-800 rounded-md p-3 mt-2 text-xs overflow-x-auto"></pre>
+                    </details>
+                </div>
+                <h2 class="text-2xl font-semibold text-white border-b-2 border-gray-700 pb-2">Step 2: Ask a Question
+                </h2>
+                <form id="query-form" class="space-y-4">
+                    <textarea id="query-input" rows="3"
+                        class="w-full p-3 bg-gray-700 border-2 border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                        placeholder="e.g., 'What are the total sales for each region?' or 'Plot sales over time as a bar chart'"></textarea>
+                    <button type="submit" id="query-button"
+                        class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:bg-gray-500"
+                        disabled>
+                        Submit Query
+                    </button>
+                </form>
+            </section>
+
+            <!-- Results Section -->
+            <section id="results-section" class="space-y-4 min-h-[100px] bg-gray-900/50 p-4 rounded-lg">
+                <!-- Loader and results will be injected here -->
+            </section>
+
+        </main>
+    </div>
+
+    <script>
+        // State management
+        let currentSessionId = null;
+        let currentTaskId = null;
+        let pollInterval;
+
+        // Element references
+        const uploadForm = document.getElementById('upload-form');
+        const fileInput = document.getElementById('file-upload');
+        const fileNameSpan = document.getElementById('file-name');
+        const uploadButton = uploadForm.querySelector('button');
+        const uploadButtonText = document.getElementById('upload-button-text');
+        const uploadSpinner = document.getElementById('upload-spinner');
+
+        const querySection = document.getElementById('query-section');
+        const queryForm = document.getElementById('query-form');
+        const queryInput = document.getElementById('query-input');
+        const queryButton = document.getElementById('query-button');
+
+        const sessionInfo = document.getElementById('session-info');
+        const uploadedFilenameSpan = document.getElementById('uploaded-filename');
+        const schemaDetailsPre = document.getElementById('schema-details');
+
+        const resultsSection = document.getElementById('results-section');
+
+        // --- Event Listeners ---
+
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length > 0) {
+                fileNameSpan.textContent = fileInput.files[0].name;
+                uploadButton.disabled = false;
+            } else {
+                fileNameSpan.textContent = '';
+                uploadButton.disabled = true;
+            }
+        });
+
+        uploadForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!fileInput.files[0]) return;
+
+            setLoading(uploadButton, uploadSpinner, uploadButtonText, true, 'Uploading...');
+            clearResults();
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            try {
+                const response = await fetch('/api/v1/upload', {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'File upload failed');
+                }
+
+                const data = await response.json();
+                currentSessionId = data.session_id;
+
+                document.getElementById('upload-section').classList.add('hidden');
+                querySection.classList.remove('hidden');
+                uploadedFilenameSpan.textContent = data.filename;
+                schemaDetailsPre.textContent = JSON.stringify(data.columns, null, 2);
+
+            } catch (error) {
+                renderError('Upload failed: ' + error.message);
+            } finally {
+                setLoading(uploadButton, uploadSpinner, uploadButtonText, false, 'Upload and Analyze');
+            }
+        });
+
+        queryInput.addEventListener('input', () => {
+            queryButton.disabled = queryInput.value.trim().length === 0;
+        });
+
+        queryForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const question = queryInput.value.trim();
+            if (!question || !currentSessionId) return;
+
+            setLoading(queryButton, null, null, true, 'Submitting...');
+            clearResults();
+            renderPollingLoader();
+
+            try {
+                const response = await fetch('/api/v1/query', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ session_id: currentSessionId, question }),
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Query submission failed');
+                }
+
+                const data = await response.json();
+                currentTaskId = data.task_id;
+                pollForResult(currentTaskId);
+            } catch (error) {
+                renderError('Query failed: ' + error.message);
+            } finally {
+                setLoading(queryButton, null, null, false, 'Submit Query');
+            }
+        });
+
+        // --- Core Logic ---
+
+        function pollForResult(taskId) {
+            pollInterval = setInterval(async () => {
+                try {
+                    const response = await fetch(`/api/v1/results/${taskId}`);
+                    if (!response.ok) { return; }
+                    const data = await response.json();
+
+                    if (data.status === 'COMPLETED' || data.status === 'FAILED') {
+                        clearInterval(pollInterval);
+                        renderResult(data.result);
+                    }
+                } catch (error) {
+                    console.error("Polling error:", error);
+                }
+            }, 2000);
+        }
+
+        // --- UI Rendering Functions ---
+
+        function renderResult(resultData) {
+            clearResults();
+            if (!resultData) {
+                renderError("No result data received from the server.");
+                return;
+            }
+
+            switch (resultData.result_type) {
+                case 'image':
+                    renderImage(resultData.image);
+                    break;
+                case 'table':
+                    renderTable(resultData.result);
+                    break;
+                case 'single_value':
+                    renderSingleValue(resultData.result);
+                    break;
+                case 'error':
+                    renderError(resultData.error);
+                    break;
+                default:
+                    renderError("An unknown result type was received from the server.");
+            }
+        }
+
+        function renderImage(base64Image) {
+            const img = document.createElement('img');
+            img.src = `data:image/png;base64,${base64Image}`;
+            img.alt = 'Generated Plot';
+            img.className = 'rounded-lg mx-auto shadow-lg max-w-full';
+            resultsSection.appendChild(img);
+        }
+
+        function renderSingleValue(value) {
+            resultsSection.innerHTML = `
+            <div class="bg-gray-700 p-6 rounded-lg text-center">
+                <p class="text-sm text-gray-400 uppercase tracking-wider">Result</p>
+                <p class="text-4xl font-bold text-white mt-2">${value}</p>
+            </div>
+        `;
+        }
+
+        function renderTable(text) {
+            const table = createTableFromText(text);
+            if (table) {
+                const container = document.createElement('div');
+                container.className = 'w-full overflow-x-auto';
+                container.appendChild(table);
+                resultsSection.appendChild(container);
+            } else {
+                renderPreformattedText(text);
+            }
+        }
+
+        function renderPreformattedText(text) {
+            const pre = document.createElement('pre');
+            pre.className = 'bg-gray-800 p-4 rounded-lg text-gray-300 text-sm overflow-x-auto';
+            pre.textContent = text;
+            resultsSection.appendChild(pre);
+        }
+
+        function createTableFromText(text) {
+            const lines = text.trim().split('\n').filter(line => {
+                const trimmed = line.trim();
+                return trimmed && !trimmed.startsWith('-') && !trimmed.startsWith('Name:') && !trimmed.startsWith('dtype:');
+            });
+
+            if (lines.length === 0) return null;
+            if (lines.length === 1) return null;
+
+            let headerLine = lines[0];
+            let bodyLines = lines.slice(1);
+
+            const columnPositions = [];
+            const headerRegex = /\S+/g;
+            let match;
+            while ((match = headerRegex.exec(headerLine)) !== null) {
+                columnPositions.push({ start: match.index, text: match[0] });
+            }
+
+            if (columnPositions.length === 0) return null;
+
+            const firstDataLine = bodyLines.length > 0 ? bodyLines[0] : '';
+            const isSeries = columnPositions.length === 1 && firstDataLine.trim().split(/\s{2,}/).length === 2;
+
+            if (isSeries) {
+                const dataParts = firstDataLine.trim().split(/\s{2,}/);
+                const valueColumnStart = firstDataLine.lastIndexOf(dataParts[1]);
+                columnPositions.length = 0;
+                columnPositions.push({ start: 0, text: headerLine.trim() });
+                columnPositions.push({ start: valueColumnStart, text: 'Value' });
+            } else {
+                const hasIndex = firstDataLine && !firstDataLine.startsWith(' ');
+                if (hasIndex) {
+                    columnPositions.unshift({ start: 0, text: '' });
+                }
+            }
+
+            if (bodyLines.length === 0 && !isSeries) return null;
+
+            const table = document.createElement('table');
+            table.className = 'w-full text-sm text-left text-gray-400';
+
+            const thead = document.createElement('thead');
+            thead.className = 'text-xs text-gray-300 uppercase bg-gray-700';
+            const trHead = document.createElement('tr');
+
+            columnPositions.forEach(pos => {
+                const th = document.createElement('th');
+                th.className = 'px-6 py-3';
+                th.textContent = pos.text;
+                trHead.appendChild(th);
+            });
+            thead.appendChild(trHead);
+            table.appendChild(thead);
+
+            const tbody = document.createElement('tbody');
+            bodyLines.forEach(line => {
+                const trBody = document.createElement('tr');
+                trBody.className = 'bg-gray-800 border-b border-gray-700 hover:bg-gray-600';
+
+                for (let i = 0; i < columnPositions.length; i++) {
+                    const start = columnPositions[i].start;
+                    const end = (i < columnPositions.length - 1) ? columnPositions[i + 1].start : line.length;
+                    const cellData = line.substring(start, end).trim();
+
+                    const td = document.createElement('td');
+                    if (i === 0) {
+                        td.className = 'px-6 py-4 font-medium text-gray-200';
+                    } else {
+                        td.className = 'px-6 py-4';
+                    }
+                    td.textContent = cellData;
+                    trBody.appendChild(td);
+                }
+                tbody.appendChild(trBody);
+            });
+
+            if (tbody.children.length > 0) {
+                table.appendChild(tbody);
+                return table;
+            }
+
+            return null;
+        }
+
+        function renderPollingLoader() {
+            resultsSection.innerHTML = `
+            <div class="flex flex-col items-center justify-center text-center p-8">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500"></div>
+                <p class="mt-4 text-lg font-semibold text-gray-300">Analyzing your data...</p>
+                <p class="text-sm text-gray-500">This may take a moment. Please wait.</p>
+            </div>
+        `;
+        }
+
+        function renderError(message) {
+            clearResults();
+            const separator = "--- Model's Raw Response ---";
+            let userMessage = message;
+            let rawResponse = '';
+
+            if (typeof message === 'string' && message.includes(separator)) {
+                const parts = message.split(separator);
+                userMessage = parts[0].trim();
+                rawResponse = parts[1] ? parts[1].trim() : '';
+            }
+
+            let errorHtml = `
+            <div class="bg-red-900/50 border border-red-700 text-red-300 px-4 py-3 rounded-lg relative" role="alert">
+                <strong class="font-bold">Error:</strong>
+                <pre class="mt-2 text-sm whitespace-pre-wrap"><code>${userMessage}</code></pre>`;
+
+            if (rawResponse) {
+                errorHtml += `
+                <details class="mt-4">
+                    <summary class="cursor-pointer font-semibold text-red-200 hover:text-red-100">View Raw Model Output</summary>
+                    <pre class="mt-2 text-xs whitespace-pre-wrap bg-gray-900/50 p-2 rounded"><code>${rawResponse}</code></pre>
+                </details>`;
+            }
+
+            errorHtml += `</div>`;
+            resultsSection.innerHTML = errorHtml;
+        }
+
+        function clearResults() {
+            if (pollInterval) clearInterval(pollInterval);
+            resultsSection.innerHTML = '';
+        }
+
+        function setLoading(button, spinner, textElement, isLoading, defaultText) {
+            if (button) button.disabled = isLoading;
+            if (spinner) spinner.classList.toggle('hidden', !isLoading);
+            if (textElement) {
+                textElement.textContent = isLoading ? '' : defaultText;
+                if (isLoading) {
+                    textElement.parentElement.classList.add('flex', 'justify-center', 'items-center');
+                } else {
+                    textElement.parentElement.classList.remove('flex', 'justify-center', 'items-center');
+                }
+            }
+        }
+    </script>
+</body>
+
+</html>
