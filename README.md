@@ -2,7 +2,7 @@
 An interactive web app that lets you chat with your CSV files. Ask questions in plain English and get back data, charts, and insights, all powered by Mistral AI.
 
 ### ► Live Demo
-▶️ [Watch the demo on YouTube](https://youtu.be/T8lhc0N_SpQ)
+▶️ [Watch the demo on YouTube](https://youtu.be/NRZIzo4MsxE) 
 
 ## ✨ Key Features
 - **Natural Language Queries:** Ask complex questions about data using plain English, no coding required.
@@ -101,3 +101,4 @@ The application will be available at https://www.google.com/search?q=http://127.
 The API is self-documenting via OpenAPI. Once running, access the interactive Swagger UI at:
 
 https://www.google.com/search?q=http://127.0.0.1:8000/docs
+
