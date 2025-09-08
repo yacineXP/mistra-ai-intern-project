@@ -23,39 +23,6 @@ An interactive web app that lets you chat with your CSV files. Ask questions in 
 
 - **Comprehensive Test Suite:** Unit and integration tests ensure code quality and reliability.
 
-- **Containerized:** Fully containerized with Docker for easy, one-command setup.
-
-- **Automated CI Pipeline:** GitHub Actions workflow automatically runs tests on every push to ensure stability.
-
-## 🛠️ Tech Stack
-- **Backend:**
-
-  - **Framework:** FastAPI
-
-  - **AI Model:** Mistral AI (mistral-large-latest)
-
-  - **Data Handling:** Pandas
-
-  - **Web Server:** Uvicorn & Gunicorn
-
-  - **Security:** Python Subprocess Sandboxing
-
-  - **Frontend:**
-
-    - **Languages:** HTML, CSS, JavaScript (Vanilla)
-
-    - **Styling:** Tailwind CSS
-
-  - **Testing & CI/CD:**
-
-    - **Framework:** Pytest, pytest-mock
-
-    - **Automation:** GitHub Actions
-
-    - **Deployment:**
-
-    - **Containerization:** Docker
-
 ## 🚀 How to Run
 
 **1. Clone the Repository**
@@ -97,9 +64,39 @@ uvicorn app.main:app --reload
 ```
 The application will be available at https://www.google.com/search?q=http://127.0.0.1:8000.
 
+## 🛠️ Tech Stack
+- **Backend:**
+
+  - **Framework:** FastAPI
+
+  - **AI Model:** Mistral AI (mistral-large-latest)
+
+  - **Data Handling:** Pandas
+
+  - **Web Server:** Uvicorn & Gunicorn
+
+  - **Security:** Python Subprocess Sandboxing
+
+  - **Frontend:**
+
+    - **Languages:** HTML, CSS, JavaScript (Vanilla)
+
+    - **Styling:** Tailwind CSS
+
+  - **Testing & CI/CD:**
+
+    - **Framework:** Pytest, pytest-mock
+
+    - **Automation:** GitHub Actions
+
+    - **Deployment:**
+
+    - **Containerization:** Docker
+
 ## 📄 API Documentation
 The API is self-documenting via OpenAPI. Once running, access the interactive Swagger UI at:
 
 https://www.google.com/search?q=http://127.0.0.1:8000/docs
+
 
 
