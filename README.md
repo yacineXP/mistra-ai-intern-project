@@ -1,4 +1,4 @@
-# Mistralytics:  Chat With Your CSV
+# Mistralytics:  Chat With Your CSV (Powered by Mistral AI)
 An interactive web app that lets you chat with your CSV files. Ask questions in plain English and get back data, charts, and insights, all powered by Mistral AI.
 
 ### ► Live Demo
@@ -101,4 +101,5 @@ The application will be available at https://www.google.com/search?q=http://127.
 The API is self-documenting via OpenAPI. Once running, access the interactive Swagger UI at:
 
 https://www.google.com/search?q=http://127.0.0.1:8000/docs
+
 
